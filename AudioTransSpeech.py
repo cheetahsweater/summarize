@@ -10,9 +10,9 @@ import openai
 import tiktoken
 import numpy as np
 
-openai.api_key = open("C:\\Users\\tom96\\PycharmProjects\\pythonProject3\\key.txt", "r").read()
+openai.api_key = open(r"C:\Users\aikma\Desktop\python\secrets\ats.txt", "r").read()
 
-token_breaker = 3000 #Recommended to set below 3000, Openai gpt-3.5 model only accepts 4096 tokens, so we are going to break the text at a given token limit
+token_breaker = 4000 #Recommended to set below 3000, Openai gpt-3.5 model only accepts 4096 tokens, so we are going to break the text at a given token limit
 encoding_break_status = False #Determine whether the script is long enough to using the encoding_break function
 
 '''
@@ -36,20 +36,7 @@ def encoding_break(transcript):
     encoding_break_status = True
     return array, rest_content
 
-
-'''
-Following code is used to convert your mp3 files into transcript.
-'''
-audio_file= open("YOUR MP3 FILE LOCATION", "rb")
-print('----------Starting your conversion from MP3 to transcript----------')
-transcript = openai.Audio.transcribe("whisper-1", audio_file)
-transcript = transcript.text
-
-'''
-OpenAI use tiktoken package to convert your script into tokens
-We need this to calculate and separate the transcript to pass it down to gpt-3.5 model
-which only allowed for 4096 tokens MAX!
-'''
+transcript = open(r"C:\Users\aikma\Desktop\python\not my programs\whisper-to-gpt-to-summary\2023.07.29 1.txt", "r").read()
 print('----------Transcript received from OpenAi Whisper Model----------')
 encode = tiktoken.encoding_for_model('gpt-3.5-turbo')
 encode_list = encode.encode(transcript)
@@ -112,5 +99,7 @@ else:
     print(f'--------Processing the transcript--------')
     final_sum +=GPT(encode.decode(final_list[0]))
 
-print(final_sum)
+with open(r"C:\Users\aikma\Desktop\python\not my programs\whisper-to-gpt-to-summary\summary.txt", "w", encoding="utf-8-sig") as file:
+        text = file.write(final_sum)
+        file.close()
 
