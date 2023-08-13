@@ -7,7 +7,10 @@ from summarize import sumsecrets
 openai.api_key = sumsecrets.myAPIkey
 encoding_break_status = False #Don't encode by default
 path = os.getcwd()
-filename = "20230730.txt"
+
+message_history = [{"role": "assistant", "content": f"OK"}]
+prompt1 = "Please summarize this in a way that is useful to somebody looking back at previous conversations to remember what subjects were discussed, with a list of subjects, each subject entry supplemented with a quick summary of the discussion of each subject"
+prompt2 = "I have a conversation split into multiple parts. Please summarize each part in a way that is useful to somebody looking back at previous conversations to remember what subjects were discussed, by listing subjects covered and then supplementing each subject with a summary of the things said about each subject, in a NON-NUMBERED format (for example, using dashes instead of numbers to precede each subject)"
 
 '''
 The following function is used to process a file that takes up more tokens than is allowed,
@@ -28,7 +31,7 @@ def encoding_break(transcript, token_breaker):
     encoding_break_status = True
     return array, rest_content
 
-def open_file(path, filename, token_breaker):
+def openfile(path, filename, token_breaker):
     #Opens transcript file and loads encoding model
     transcript = open(f"{path}\\{filename}", "r").read()
     print('Transcript received!')
@@ -59,7 +62,7 @@ which could result in missing context between slices if it's slic
 '''
 For the following function, we pass our transcripts(sliced up) in the matrix into the gpt-3.5 models one by one
 '''
-def GPT(input, prompt1):
+def GPT(input):
     message_history = [{"role": "assistant", "content": f"OK"}]
     # tokenize the new input sentence
     message_history.append({"role": "user", "content": f"{prompt1}: {input}"}) # It is up to you to ask the model to output bullet points or just a general summary
@@ -73,7 +76,7 @@ def GPT(input, prompt1):
     message_history.append({"role": "assistant", "content": f"{reply_content}"})
     return reply_content
 
-def GPTsplitfirst(input, prompt2):
+def GPTsplitfirst(input):
     message_history = [{"role": "assistant", "content": f"OK"}]
     # tell chatGPT that the split transcript will be sent in multiple parts and send the first part
     message_history.append({"role": "user", "content": f"{prompt2}: {input}"}) # It is up to you to ask the model to output bullet points or just a general summary
@@ -104,7 +107,8 @@ def GPTsplitrest(input):
 '''
 We can then sum up all the processed summarization to a str(final_sum)
 '''
-def summarize(final_list):
+def summarize(path, filename):
+    final_list, remain_content = openfile(path, filename, 3000)
     encode = tiktoken.encoding_for_model('gpt-3.5-turbo')
     final_sum = 'Summary\n\n'
     if encoding_break_status is True: #Check to see if we used the encoding_break function, if true, we process transcripts one by one. Otherwise, we just feed the original transcript.
@@ -124,7 +128,8 @@ def summarize(final_list):
         print(f'Processing the transcript...')
         final_sum +=GPT(encode.decode(final_list[0]))
 
-    with open(f"{path}\\summary.txt", "w", encoding="utf-8-sig") as file:
+    rawfilename = filename.strip(".txt")
+    with open(f"{path}\\{rawfilename}_summary.txt", "w", encoding="utf-8-sig") as file:
             text = file.write(final_sum)
             file.close()
 
