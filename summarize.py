@@ -28,10 +28,9 @@ def encoding_break(transcript, token_breaker):
         a = i*token_breaker
         c = (i+1)*token_breaker
         array[i:]=transcript[a:c]
-    encoding_break_status = True
     return array, rest_content
 
-def openfile(path, filename, token_breaker):
+def open_file(path, filename, token_breaker):
     #Opens transcript file and loads encoding model
     transcript = open(f"{path}\\{filename}", "r").read()
     print('Transcript received!')
@@ -43,13 +42,16 @@ def openfile(path, filename, token_breaker):
     if it is within the token limit, put it as it is into a matrix.
     '''
     if len(encode_list) > token_breaker:
+        encoding_break_status = True
         final_list = encoding_break(encode_list, 3000)[0]
         remain_content = encoding_break(encode_list, 3000)[1]
         print("Separation process initiated...")
     else:
+        encoding_break_status = False
         final_list = np.zeros((1,len(encode_list)), dtype=np.int64)
         final_list[0] = encode_list
         print("No separation needed!")
+        remain_content = "none"
     return final_list, remain_content
 
 '''
@@ -108,7 +110,7 @@ def GPTsplitrest(input):
 We can then sum up all the processed summarization to a str(final_sum)
 '''
 def summarize(path, filename):
-    final_list, remain_content = openfile(path, filename, 3000)
+    final_list, remain_content = open_file(path, filename, 3000)
     encode = tiktoken.encoding_for_model('gpt-3.5-turbo')
     final_sum = 'Summary\n\n'
     if encoding_break_status is True: #Check to see if we used the encoding_break function, if true, we process transcripts one by one. Otherwise, we just feed the original transcript.
