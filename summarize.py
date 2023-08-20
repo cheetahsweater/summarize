@@ -64,14 +64,15 @@ which could result in missing context between slices if it's slic
 '''
 For the following function, we pass our transcripts(sliced up) in the matrix into the gpt-3.5 models one by one
 '''
-def GPT(input):
+def GPT(input, temperature):
     message_history = [{"role": "assistant", "content": f"OK"}]
     # tokenize the new input sentence
     message_history.append({"role": "user", "content": f"{prompt1}: {input}"}) # It is up to you to ask the model to output bullet points or just a general summary
     prompt_history = [message_history[len(message_history)-2],message_history[len(message_history)-1]] # I believe by putting the previous messages into the current context can improve the model's overall accuracy.
     completion = openai.ChatCompletion.create(
       model="gpt-3.5-turbo",
-      messages=prompt_history
+      messages=prompt_history,
+      temperature=temperature
     )
     print(f"{completion.usage.total_tokens} tokens consumed.")
     reply_content = completion.choices[0].message.content
@@ -109,26 +110,26 @@ def GPTsplitrest(input):
 '''
 We can then sum up all the processed summarization to a str(final_sum)
 '''
-def summarize(path, filename):
+def summarize(path, filename, temperature):
     final_list, remain_content = open_file(path, filename, 3000)
     encode = tiktoken.encoding_for_model('gpt-3.5-turbo')
     final_sum = 'Summary\n\n'
     if encoding_break_status is True: #Check to see if we used the encoding_break function, if true, we process transcripts one by one. Otherwise, we just feed the original transcript.
         for i in range(len(final_list)):
             if i == 0:
-                print(f'Processing paragraph {i + 1}...')
+                print(f'Processing paragraph {i + 1} with temperature {temperature}...')
                 final_sum += "Part 1:\n"
-                final_sum += GPTsplitfirst(encode.decode(final_list[i]))
+                final_sum += GPTsplitfirst(encode.decode(final_list[i]), temperature)
             else:
-                print(f'Processing paragraph {i + 1}...')
+                print(f'Processing paragraph {i + 1} with temperature {temperature}...')
                 final_sum += f"\n\nPart {i + 1}:\n"
-                final_sum += GPTsplitrest(encode.decode(final_list[i]))
-        print(f'Processing the last paragraph...')
+                final_sum += GPTsplitrest(encode.decode(final_list[i]), temperature)
+        print(f'Processing the last paragraph with temperature {temperature}...')
         final_sum += f"\n\nFinal part:\n"
-        final_sum += GPTsplitrest(encode.decode(remain_content[0]))
+        final_sum += GPTsplitrest(encode.decode(remain_content[0]), temperature)
     else:
-        print(f'Processing the transcript...')
-        final_sum +=GPT(encode.decode(final_list[0]))
+        print(f'Processing the transcript with temperature {temperature}...')
+        final_sum +=GPT(encode.decode(final_list[0]), temperature)
 
     rawfilename = filename.strip(".txt")
     with open(f"{path}\\{rawfilename}_summary.txt", "w", encoding="utf-8-sig") as file:
