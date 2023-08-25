@@ -49,7 +49,8 @@ def encoding_break(transcript, token_breaker):
 
 def open_file(path, filename, token_breaker):
     #Opens transcript file and loads encoding model
-    transcript = open(f"{path}\\{filename}", "r", encoding="utf8").read()
+    unenc_transcript = open(f"{path}\\{filename}", "r").read()
+    transcript = str(unenc_transcript.encode(encoding='UTF-8',errors='replace'))
     print('Transcript received!')
     log.log(f"Text loaded.")
     encode = tiktoken.encoding_for_model('gpt-3.5-turbo')
